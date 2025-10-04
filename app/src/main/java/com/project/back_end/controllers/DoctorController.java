@@ -2,6 +2,7 @@ package com.project.back_end.controllers;
 
 import com.project.back_end.models.Doctor;
 import com.project.back_end.services.DoctorService;
+import com.project.back_end.services.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,9 @@ public class DoctorController {
     
     @Autowired
     private DoctorService doctorService;
+    
+    @Autowired
+    private TokenService tokenService;
     
     @GetMapping
     public ResponseEntity<List<Doctor>> getAllDoctors() {
@@ -90,6 +94,25 @@ public class DoctorController {
         try {
             List<Doctor> doctors = doctorService.searchDoctorsByName(name);
             return ResponseEntity.ok(doctors);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/availability/{user}/{doctorId}/{date}/{token}")
+    public ResponseEntity<List<String>> getDoctorAvailability(
+            @PathVariable String user,
+            @PathVariable Long doctorId,
+            @PathVariable String date,
+            @PathVariable String token) {
+        try {
+            // Validate token
+            if (!tokenService.isTokenValid(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            
+            List<String> availableSlots = doctorService.getAvailableTimeSlots(doctorId, date);
+            return ResponseEntity.ok(availableSlots);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

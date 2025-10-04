@@ -119,15 +119,15 @@ BEGIN
     SELECT 
         d.name as doctor_name,
         p.name as patient_name,
+        p.phone as patient_phone,
         a.appointment_time,
-        a.status,
-        a.notes
+        a.status
     FROM appointments a
     JOIN doctors d ON a.doctor_id = d.id
     JOIN patients p ON a.patient_id = p.id
     WHERE a.doctor_id = doctor_id_param
     AND DATE(a.appointment_time) = report_date
-    ORDER BY a.appointment_time;
+    ORDER BY d.name, a.appointment_time;
 END //
 DELIMITER ;
 
@@ -138,16 +138,14 @@ CREATE PROCEDURE GetDoctorWithMostPatientsByMonth(
 )
 BEGIN
     SELECT 
-        d.id,
-        d.name,
-        d.specialty,
-        COUNT(DISTINCT a.patient_id) as patient_count
+        d.id as doctor_id,
+        COUNT(DISTINCT a.patient_id) as patients_seen
     FROM doctors d
     JOIN appointments a ON d.id = a.doctor_id
     WHERE MONTH(a.appointment_time) = month_param
     AND YEAR(a.appointment_time) = year_param
-    GROUP BY d.id, d.name, d.specialty
-    ORDER BY patient_count DESC
+    GROUP BY d.id
+    ORDER BY patients_seen DESC
     LIMIT 1;
 END //
 DELIMITER ;
@@ -158,15 +156,13 @@ CREATE PROCEDURE GetDoctorWithMostPatientsByYear(
 )
 BEGIN
     SELECT 
-        d.id,
-        d.name,
-        d.specialty,
-        COUNT(DISTINCT a.patient_id) as patient_count
+        d.id as doctor_id,
+        COUNT(DISTINCT a.patient_id) as patients_seen
     FROM doctors d
     JOIN appointments a ON d.id = a.doctor_id
     WHERE YEAR(a.appointment_time) = year_param
-    GROUP BY d.id, d.name, d.specialty
-    ORDER BY patient_count DESC
+    GROUP BY d.id
+    ORDER BY patients_seen DESC
     LIMIT 1;
 END //
 DELIMITER ;

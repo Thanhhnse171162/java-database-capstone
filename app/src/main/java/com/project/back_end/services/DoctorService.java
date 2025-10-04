@@ -5,6 +5,9 @@ import com.project.back_end.repo.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +67,21 @@ public class DoctorService {
             return doctorRepository.save(doctor);
         }
         return null;
+    }
+    
+    public List<String> getAvailableTimeSlots(Long doctorId, String date) {
+        List<String> availableSlots = new ArrayList<>();
+        LocalDate appointmentDate = LocalDate.parse(date);
+        
+        // Generate time slots from 9 AM to 5 PM
+        LocalTime startTime = LocalTime.of(9, 0);
+        LocalTime endTime = LocalTime.of(17, 0);
+        
+        for (LocalTime time = startTime; time.isBefore(endTime); time = time.plusHours(1)) {
+            availableSlots.add(time.toString());
+        }
+        
+        return availableSlots;
     }
 }
 

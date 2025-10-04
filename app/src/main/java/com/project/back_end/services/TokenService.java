@@ -6,15 +6,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
 
 @Service
 public class TokenService {
     
     @Autowired
     private TokenRepository tokenRepository;
+    
+    private static final String SECRET = "mySecretKey123456789012345678901234567890";
+    private static final SecretKey SIGNING_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
     
     public Token generateToken(Long userId, String userType) {
         // Invalidate existing tokens for this user
@@ -83,6 +91,22 @@ public class TokenService {
     public Optional<String> getUserTypeFromToken(String tokenValue) {
         Optional<Token> token = validateToken(tokenValue);
         return token.map(Token::getUserType);
+    }
+    
+    public String generateJwtToken(String userEmail) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+        
+        return Jwts.builder()
+                .setSubject(userEmail)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(SIGNING_KEY, SignatureAlgorithm.HS256)
+                .compact();
+    }
+    
+    public SecretKey getSigningKey() {
+        return SIGNING_KEY;
     }
 }
 
